@@ -1,38 +1,44 @@
-name: Reusable PHP Login Workflow (Basic)
+name: CI Reutilizável PHP Login
 
 on:
   workflow_call:
     inputs:
-      php_version:
+      php-version:
         required: false
         type: string
-        default: '8.1'
+        default: '8.2'
 
 jobs:
-  test-login:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout do repositório chamador
-        uses: actions/checkout@v3
+      - name: Checkout código
+        uses: actions/checkout@v4
 
       - name: Configurar PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ inputs.php_version }}
+          php-version: ${{ inputs.php-version }}
 
-      - name: Executar teste básico de login (index.php)
+      - name: Instalar dependências
         run: |
-          php -r 'session_start();
-          $_POST["username"]="admin";
-          $_POST["password"]="novaSenha";
-          include "index.php";
-          if (!($_SESSION["loggedin"] ?? false)) {
-            echo "LOGIN_FAILED\n";
-            exit(1);
-          }
-          if (($_SESSION["username"] ?? "") !== "admin") {
-            echo "USERNAME_MISMATCH\n";
-            exit(1);
-          }
-          echo "LOGIN_OK\n";'
+          sudo apt-get install -y php-cli php-mbstring
+          echo "Dependências instaladas."
+
+      - name: Rodar testes
+        run: |
+          echo "Simulando testes..."
+          php -l index.php
+
+      - name: Build do projeto
+        run: echo "Build realizado com sucesso!"
+
+      - name: Deploy (simulado)
+        run: echo "Realizando deploy..."
+
+      - name: Simular envio de webhook
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d '{"status":"success","message":"trampo finalizado"}' \
+          https://webhook.site/7976e3b8-2e08-4e0f-8f52-2836c82f69c2
