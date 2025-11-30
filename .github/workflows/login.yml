@@ -1,0 +1,13 @@
+name: CI Reutilizável PHP Login
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        required: false
+        type: string
+        default: '8.2'
+
+jobs:
+  build:
+    runs-on: ubunto-latest
