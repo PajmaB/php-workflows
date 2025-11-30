@@ -1,15 +1,15 @@
-name: Reusable PHP Login Workflow
+name: Reusable PHP Login Workflow (Basic)
 
 on:
   workflow_call:
     inputs:
       php_version:
         required: false
-        default: '8.1'
         type: string
+        default: '8.1'
 
 jobs:
-  login-tests:
+  test-login:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,45 +21,18 @@ jobs:
         with:
           php-version: ${{ inputs.php_version }}
 
-      - name: Instalar dependências (se existir composer.json)
+      - name: Executar teste básico de login (index.php)
         run: |
-          if [ -f "composer.json" ]; then
-            composer install
-          else
-            echo "Nenhum composer.json encontrado — seguindo..."
-          fi
-
-      - name: Criar teste básico de login (caso não exista)
-        run: |
-          if [ ! -d "tests" ]; then
-            echo "Criando pasta de testes..."
-            mkdir -p tests
-          fi
-
-          if [ ! -f "tests/LoginTest.php" ]; then
-            echo "Gerando teste básico para validar o login..."
-cat << 'EOF' > tests/LoginTest.php
-<?php
-
-use PHPUnit\Framework\TestCase;
-
-class LoginTest extends TestCase {
-    public function testLoginSimulation() {
-        $_POST["username"] = "admin";
-        $_POST["password"] = "novaSenha";
-
-        ob_start();
-        include "index.php"; // Ajuste para o arquivo correto se necessário
-        ob_end_clean();
-
-        $this->assertTrue($_SESSION["loggedin"] ?? false);
-        $this->assertEquals("admin", $_SESSION["username"] ?? "");
-    }
-}
-EOF
-          fi
-
-      - name: Executar testes PHPUnit ou fallback
-        run: |
-          if [ -f "vendor/bin/phpunit" ]; then
-            vendor/bin/php
+          php -r 'session_start();
+          $_POST["username"]="admin";
+          $_POST["password"]="novaSenha";
+          include "index.php";
+          if (!($_SESSION["loggedin"] ?? false)) {
+            echo "LOGIN_FAILED\n";
+            exit(1);
+          }
+          if (($_SESSION["username"] ?? "") !== "admin") {
+            echo "USERNAME_MISMATCH\n";
+            exit(1);
+          }
+          echo "LOGIN_OK\n";'
